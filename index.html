@@ -325,27 +325,30 @@
     <div class="kpi" style="--kc:var(--yel)"><div class="kpi-lbl">Para Equilibrar (Déficit Zero)</div><div class="kpi-val" style="color:var(--yel)">R$ 16M</div><div class="kpi-sub">+128% vs 2026 projetado (~R$ 7M)</div></div>
     <div class="kpi" style="--kc:var(--red)"><div class="kpi-lbl">PE Mensal</div><div class="kpi-val" style="color:var(--red)">R$ 1.267K</div><div class="kpi-sub">Faturamento mínimo para não ter déficit</div></div>
   </div>
-  <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center">
-    <span style="font-size:.8rem;color:var(--mut);font-weight:600">Cenário:</span>
-    <button class="btn av" data-sc="pe" onclick="setOrc(this,'pe')">⚖️ Ponto de Equilíbrio — R$ 16M</button>
-    <button class="btn" data-sc="meta" onclick="setOrc(this,'meta')">🎯 Meta Lucro — R$ 18,2M</button>
-  </div>
   <div class="g2">
     <div class="card">
-      <div class="ch"><div><div class="ct" id="orc-titulo">Faturamento Projetado — Cenário Conservador</div><div class="cs">Distribuição mensal por sazonalidade histórica</div></div></div>
+      <div class="ch"><div><div class="ct">Faturamento Mensal vs PE</div><div class="cs">Ambos os cenários — linha vermelha = ponto de equilíbrio</div></div></div>
       <div class="cw" style="height:260px"><canvas id="cOrc"></canvas></div>
     </div>
     <div class="card">
-      <div class="ch"><div class="ct">Resultado Acumulado 2027</div><div class="cs">Lucro/Déficit acumulado mês a mês</div></div>
+      <div class="ch"><div class="ct">Resultado Acumulado 2027</div><div class="cs">Evolução do lucro/déficit mês a mês</div></div>
       <div class="cw" style="height:260px"><canvas id="cOrcAcum"></canvas></div>
     </div>
   </div>
   <div class="card">
-    <div class="ch"><div><div class="ct">Orçamento Mensal 2027</div><div class="cs" id="orc-resumo">—</div></div></div>
+    <div class="ch"><div><div class="ct">⚖️ Ponto de Equilíbrio — R$ 15,975M/ano</div><div class="cs">Resultado zero — sem déficit, sem lucro</div></div></div>
     <div class="tbl-wrap"><table>
-      <thead><tr><th>Mês</th><th class="nr">Fat. Projetado</th><th class="nr">Custo Variável</th><th class="nr">Custo Fixo</th><th class="nr">Custo Total</th><th class="nr">Resultado Mês</th><th class="nr">Acumulado</th></tr></thead>
-      <tbody id="orc-tbl"></tbody>
-      <tfoot id="orc-tfoot"></tfoot>
+      <thead><tr><th>Mês</th><th class="nr">Faturamento</th><th class="nr">Custo Variável</th><th class="nr">Custo Fixo</th><th class="nr">Custo Total</th><th class="nr">Resultado Mês</th><th class="nr">Acumulado</th></tr></thead>
+      <tbody id="orc-tbl-pe"></tbody>
+      <tfoot id="orc-tfoot-pe"></tfoot>
+    </table></div>
+  </div>
+  <div class="card" style="margin-top:18px">
+    <div class="ch"><div><div class="ct">🎯 Meta Lucro R$ 1,5M — R$ 18,213M/ano</div><div class="cs">Resultado anual: +R$ 1.500.000</div></div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Mês</th><th class="nr">Faturamento</th><th class="nr">Custo Variável</th><th class="nr">Custo Fixo</th><th class="nr">Custo Total</th><th class="nr">Resultado Mês</th><th class="nr">Acumulado</th></tr></thead>
+      <tbody id="orc-tbl-meta"></tbody>
+      <tfoot id="orc-tfoot-meta"></tfoot>
     </table></div>
   </div>
   <div class="card" style="background:rgba(251,191,36,.05);border-color:rgba(251,191,36,.25)">
@@ -574,7 +577,45 @@ const ORC_SC={
 };
 const CF_MES=891974,CV_PCT=0.33;
 let _orcCen='pe';
-function setOrc(btn,sc){document.querySelectorAll('[data-sc]').forEach(b=>b.classList.remove('av'));btn.classList.add('av');_orcCen=sc;drawOrc();}
+function calcCen(sc){
+  const cen=ORC_SC[sc];
+  const fat=ORC_W.map(w=>Math.round(cen.fat*w));
+  const cv=fat.map(v=>Math.round(v*CV_PCT));
+  const ct=fat.map((v,i)=>cv[i]+CF_MES);
+  const res=fat.map((v,i)=>v-ct[i]);
+  let acum=0;const acums=res.map(v=>{acum+=v;return acum;});
+  return{fat,cv,ct,res,acums,lucro:Math.round(cen.fat*0.67-CF_MES*12)};
+}
+function fillOrcTable(tbId,tfId,data,cen){
+  const PE=Math.round(CF_MES/0.67);
+  const tb=document.getElementById(tbId);if(!tb)return;tb.innerHTML='';
+  data.fat.forEach((v,i)=>{
+    const above=v>=PE;const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${MO[i]}</td><td class="nr" style="color:${above?'var(--grn)':'var(--red)'}">${f(v)}</td><td class="nr">${f(data.cv[i])}</td><td class="nr">${f(CF_MES)}</td><td class="nr">${f(data.ct[i])}</td><td class="nr" style="color:${cl(data.res[i])};font-weight:600">${f(data.res[i])}</td><td class="nr" style="color:${cl(data.acums[i])};font-weight:700">${f(data.acums[i])}</td>`;
+    tb.appendChild(tr);
+  });
+  const tf=document.getElementById(tfId);if(!tf)return;tf.innerHTML='';
+  const tfr=document.createElement('tr');tfr.style.cssText='font-weight:700;border-top:2px solid var(--bdr)';
+  tfr.innerHTML=`<td>Total</td><td class="nr">${f(cen.fat)}</td><td class="nr">${f(sa(data.cv))}</td><td class="nr">${f(CF_MES*12)}</td><td class="nr">${f(sa(data.ct))}</td><td class="nr" style="color:${cl(data.lucro)};font-size:1rem">${f(data.lucro)}</td><td></td>`;
+  tf.appendChild(tfr);
+}
+function drawOrc(){
+  const dPE=calcCen('pe'),dMeta=calcCen('meta');
+  const PE_LINE=Math.round(CF_MES/0.67);
+  mk('cOrc','bar',MO,[
+    {label:'⚖️ PE',data:dPE.fat,backgroundColor:'#fbbf2488',borderColor:'#fbbf24',borderWidth:2,borderRadius:4},
+    {label:'🎯 Meta Lucro',data:dMeta.fat,backgroundColor:'#22c55e88',borderColor:'#22c55e',borderWidth:2,borderRadius:4},
+    {label:'Ponto de Equilíbrio',data:Array(12).fill(PE_LINE),type:'line',borderColor:'#f87171',borderWidth:2,borderDash:[5,3],pointRadius:0,fill:false}
+  ],{plugins:{legend:{display:true,labels:{color:'#94a3b8',boxWidth:12,font:{size:10}}}},scales:{y:{ticks:{callback:v=>f(v,true)}}}});
+  mk('cOrcAcum','line',MO,[
+    {label:'Acum. PE',data:dPE.acums,borderColor:'#fbbf24',backgroundColor:'#fbbf2422',borderWidth:2.5,pointRadius:3,fill:false,tension:.3},
+    {label:'Acum. Meta',data:dMeta.acums,borderColor:'#22c55e',backgroundColor:'#22c55e22',borderWidth:2.5,pointRadius:3,fill:false,tension:.3}
+  ],{plugins:{legend:{display:true,labels:{color:'#94a3b8',boxWidth:12,font:{size:10}}}},scales:{y:{ticks:{callback:v=>f(v,true)}}}});
+  fillOrcTable('orc-tbl-pe','orc-tfoot-pe',dPE,ORC_SC.pe);
+  fillOrcTable('orc-tbl-meta','orc-tfoot-meta',dMeta,ORC_SC.meta);
+  const mesOKpe=dPE.fat.filter(v=>v>=PE_LINE).length,mesOKm=dMeta.fat.filter(v=>v>=PE_LINE).length;
+  document.getElementById('orc-gap-txt').innerHTML=`<p><strong style="color:var(--txt)">Resumo comparativo:</strong></p><p style="margin-top:8px">⚖️ <strong style="color:var(--yel)">PE (R$ ${(ORC_SC.pe.fat/1e6).toFixed(1).replace('.',',')}M)</strong>: ${mesOKpe} de 12 meses acima do PE — resultado anual <strong style="color:${cl(dPE.lucro)}">${f(dPE.lucro)}</strong>.</p><p style="margin-top:8px">🎯 <strong style="color:var(--grn)">Meta Lucro (R$ ${(ORC_SC.meta.fat/1e6).toFixed(1).replace('.',',')}M)</strong>: ${mesOKm} de 12 meses acima do PE — resultado anual <strong style="color:var(--grn)">${f(dMeta.lucro)}</strong>.</p><p style="margin-top:8px">Diferença entre os cenários: <strong>${f(ORC_SC.meta.fat-ORC_SC.pe.fat)}</strong> a mais no faturamento anual para sair do equilíbrio e gerar R$ 1,5M de lucro.</p>`;
+}
 function buildCatTable(){
   const MESES=7;// Jan-Jul 2026
   const cats=[
@@ -615,30 +656,7 @@ function buildCatTable(){
   tfr.innerHTML=`<td colspan="2">Total (Top 20 categorias)</td><td class="nr">${f(Math.round(totM26))}</td><td class="nr" style="color:var(--yel)">${f(Math.round(totM27))}</td><td class="nr">${f(Math.round(totA27))}</td><td style="color:var(--mut);font-size:.72rem">+5% inflação</td>`;
   tf.appendChild(tfr);
 }
-function drawOrc(){
-  const cen=ORC_SC[_orcCen];
-  const fat=ORC_W.map(w=>Math.round(cen.fat*w));
-  const cv=fat.map(v=>Math.round(v*CV_PCT));
-  const ct=fat.map((v,i)=>cv[i]+CF_MES);
-  const res=fat.map((v,i)=>v-ct[i]);
-  let acum=0;const acums=res.map(v=>{acum+=v;return acum;});
-  const lucroAnual=Math.round(cen.fat*0.67-CF_MES*12);
-  document.getElementById('orc-titulo').textContent='Faturamento Projetado — Cenário '+cen.l;
-  document.getElementById('orc-resumo').textContent='Anual: '+f(cen.fat)+' → Resultado: '+(lucroAnual>=0?'+':'')+f(lucroAnual);
-  mk('cOrc','bar',MO,[
-    {label:'Faturamento',data:fat,backgroundColor:cen.c+'88',borderColor:cen.c,borderWidth:2,borderRadius:4},
-    {label:'PE (R$ 1.267.000)',data:Array(12).fill(1267000),type:'line',borderColor:'#f87171',borderWidth:2,borderDash:[5,3],pointRadius:0,fill:false}
-  ],{plugins:{legend:{display:true,labels:{color:'#94a3b8',boxWidth:12,font:{size:10}}}},scales:{y:{ticks:{callback:v=>f(v,true)}}}});
-  mk('cOrcAcum','line',MO,[{label:'Acumulado',data:acums,borderColor:acums[11]>=0?'#22c55e':'#f87171',backgroundColor:(acums[11]>=0?'#22c55e':'#f87171')+'22',borderWidth:2.5,pointRadius:4,fill:true,tension:.3}],{scales:{y:{ticks:{callback:v=>f(v,true)}}}});
-  const tb=document.getElementById('orc-tbl');tb.innerHTML='';
-  MO.forEach((m,i)=>{const above=fat[i]>=1267000;const tr=document.createElement('tr');tr.innerHTML=`<td>${m}</td><td class="nr" style="color:${above?'var(--grn)':'var(--red)'}">${f(fat[i])}</td><td class="nr">${f(cv[i])}</td><td class="nr">${f(CF_MES)}</td><td class="nr">${f(ct[i])}</td><td class="nr" style="color:${cl(res[i])};font-weight:600">${f(res[i])}</td><td class="nr" style="color:${cl(acums[i])};font-weight:700">${f(acums[i])}</td>`;tb.appendChild(tr);});
-  const tf=document.getElementById('orc-tfoot');tf.innerHTML='';
-  const tfr=document.createElement('tr');tfr.style.cssText='font-weight:700;border-top:2px solid var(--bdr)';
-  tfr.innerHTML=`<td>Total</td><td class="nr">${f(cen.fat)}</td><td class="nr">${f(sa(cv))}</td><td class="nr">${f(CF_MES*12)}</td><td class="nr">${f(sa(ct))}</td><td class="nr" style="color:${cl(lucroAnual)}">${f(lucroAnual)}</td><td></td>`;tf.appendChild(tfr);
-  const mesOK=fat.filter(v=>v>=1267000).length;
-  const gap=17500000-cen.fat;const gapPct=Math.round(gap/cen.fat*100);
-  document.getElementById('orc-gap-txt').innerHTML=`<p><strong style="color:var(--txt)">Cenário ${cen.l} — R$ ${(cen.fat/1e6).toFixed(0)}M/ano:</strong></p><p style="margin-top:8px"><strong style="color:${mesOK>=6?'var(--grn)':'var(--yel)'}">${mesOK} de 12 meses</strong> ficam acima do ponto de equilíbrio. Resultado anual: <strong style="color:${cl(lucroAnual)}">${f(lucroAnual)}</strong>.</p><p style="margin-top:8px">${gap>0?`Para atingir a <strong style="color:var(--pur)">meta de R$ 1,5M de lucro</strong>, faltam <strong style="color:var(--red)">R$ ${f(gap)}</strong> de faturamento anual (+${gapPct}% sobre este cenário). A alavanca principal é crescimento de receita — os custos fixos estão mantidos.`:`<strong style="color:var(--grn)">Meta de lucro atingida ✓</strong> — este cenário supera a meta de R$ 1,5M.`}</p><p style="margin-top:8px">Meses em <span style="color:var(--grn)">verde</span> = acima do PE &nbsp;|&nbsp; em <span style="color:var(--red)">vermelho</span> = abaixo do PE.</p>`;
-}
+
 const done={};
 function sp(id,el){
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
