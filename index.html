@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Dashboard Xis Design</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root{--bg:#0f1117;--sur:#1a1d27;--sur2:#22263a;--bdr:#2e3249;
+    --blue:#4f8ef7;--blue2:#2563eb;--teal:#22d3ee;--grn:#22c55e;
+    --red:#f87171;--yel:#fbbf24;--pur:#a78bfa;--txt:#e2e8f0;--mut:#94a3b8;}
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{background:var(--bg);color:var(--txt);font-family:'Segoe UI',Arial,sans-serif;}
+  .hdr{background:linear-gradient(135deg,#0f1117,#1a2744);border-bottom:1px solid var(--bdr);
+       padding:18px 32px;display:flex;align-items:center;justify-content:space-between;}
+  .hdr-l{display:flex;align-items:center;gap:16px;}
+  .logo{width:42px;height:42px;background:linear-gradient(135deg,var(--blue),var(--teal));
+        border-radius:10px;display:flex;align-items:center;justify-content:center;
+        font-weight:900;font-size:18px;color:#fff;}
+  .hdr h1{font-size:1.4rem;font-weight:700;}
+  .hdr p{font-size:.78rem;color:var(--mut);margin-top:2px;}
+  .badge{background:var(--blue2);color:#fff;padding:4px 12px;border-radius:20px;font-size:.72rem;font-weight:600;}
+  .tabs{display:flex;gap:4px;padding:16px 32px 0;border-bottom:1px solid var(--bdr);background:var(--sur);flex-wrap:wrap;}
+  .tab{padding:10px 18px;border-radius:8px 8px 0 0;cursor:pointer;font-size:.82rem;font-weight:600;
+       color:var(--mut);border:1px solid transparent;border-bottom:none;transition:all .2s;}
+  .tab.active{background:var(--bg);color:var(--blue);border-color:var(--bdr);margin-bottom:-1px;}
+  .tab:hover:not(.active){color:var(--txt);}
+  .main{padding:24px 32px;}
+  .pane{display:none;}.pane.active{display:block;}
+  .kpi-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px;}
+  .kpi{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:18px 20px;position:relative;overflow:hidden;}
+  .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:var(--kc,var(--blue));}
+  .kpi-lbl{font-size:.72rem;color:var(--mut);font-weight:600;text-transform:uppercase;letter-spacing:.05em;}
+  .kpi-val{font-size:1.55rem;font-weight:800;margin:5px 0 3px;}
+  .kpi-sub{font-size:.76rem;color:var(--mut);}
+  .up{color:var(--grn)!important;}.down{color:var(--red)!important;}
+  .card{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:22px;margin-bottom:18px;}
+  .ch{display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:16px;}
+  .ct{font-size:.95rem;font-weight:700;}.cs{font-size:.73rem;color:var(--mut);margin-top:3px;}
+  .cw{position:relative;}
+  .g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:18px;}
+  .g3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:18px;}
+  .fb{display:flex;gap:8px;flex-wrap:wrap;}
+  .btn{padding:5px 13px;border-radius:20px;border:1px solid var(--bdr);background:transparent;
+       color:var(--mut);cursor:pointer;font-size:.76rem;font-weight:600;transition:all .2s;}
+  .btn.av{background:var(--blue2);border-color:var(--blue2);color:#fff;}
+  .btn.af{background:#0e5c55;border-color:#22d3ee;color:#22d3ee;}
+  .tbl-wrap{overflow-x:auto;margin-top:16px;}
+  table{width:100%;border-collapse:collapse;font-size:.8rem;}
+  thead tr{border-bottom:1px solid var(--bdr);}
+  th{padding:9px 12px;text-align:left;color:var(--mut);font-weight:600;font-size:.72rem;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap;}
+  td{padding:9px 12px;border-bottom:1px solid rgba(46,50,73,.4);white-space:nowrap;}
+  tr:last-child td{border-bottom:none;}
+  tr:hover td{background:var(--sur2);}
+  .nr{text-align:right;font-variant-numeric:tabular-nums;}
+  .pill{display:inline-block;padding:2px 9px;border-radius:12px;font-size:.7rem;font-weight:700;}
+  .pg{background:rgba(34,197,94,.15);color:var(--grn);}
+  .pr{background:rgba(248,113,113,.15);color:var(--red);}
+  .py{background:rgba(251,191,36,.15);color:var(--yel);}
+  .pb{background:rgba(79,142,247,.15);color:var(--blue);}
+  .bb{background:var(--sur2);border-radius:4px;height:6px;width:70px;display:inline-block;vertical-align:middle;}
+  .bf{height:100%;border-radius:4px;}
+  .opp-card{background:var(--sur);border:1px solid var(--bdr);border-radius:12px;padding:20px;margin-bottom:12px;display:flex;align-items:flex-start;gap:16px;}
+  .opp-icon{width:40px;height:40px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+  .opp-body .opp-title{font-weight:700;font-size:.9rem;margin-bottom:4px;}
+  .opp-body .opp-desc{font-size:.8rem;color:var(--mut);line-height:1.5;}
+  .opp-body .opp-impact{font-size:.78rem;margin-top:8px;font-weight:600;}
+  .pe-input{display:flex;flex-direction:column;gap:6px;}
+  .pe-input label{font-size:.78rem;color:var(--mut);font-weight:600;}
+  .pe-input input,select{background:var(--sur2);border:1px solid var(--bdr);color:var(--txt);
+    border-radius:8px;padding:8px 12px;font-size:.9rem;width:100%;}
+  .pe-input input:focus{outline:none;border-color:var(--blue);}
+  .pe-result{background:linear-gradient(135deg,rgba(79,142,247,.1),rgba(34,211,238,.08));
+    border:1px solid rgba(79,142,247,.3);border-radius:12px;padding:20px;text-align:center;}
+  .pe-result .pe-val{font-size:2rem;font-weight:900;color:var(--blue);}
+  .pe-result .pe-lbl{font-size:.8rem;color:var(--mut);margin-top:4px;}
+  .note-box{background:rgba(34,211,238,.06);border:1px solid rgba(34,211,238,.2);border-radius:10px;
+    padding:12px 16px;margin-bottom:18px;font-size:.78rem;color:var(--mut);}
+  @media(max-width:900px){
+    .kpi-grid{grid-template-columns:1fr 1fr;}
+    .g2,.g3{grid-template-columns:1fr;}
+    .hdr,.main,.tabs{padding-left:14px;padding-right:14px;}
+  }
+</style>
+</head>
+<body>
+<div class="hdr">
+  <div class="hdr-l">
+    <div class="logo">X</div>
+    <div><h1>Xis Design</h1><p>Dashboard Comercial e Financeiro</p></div>
+  </div>
+  <span class="badge">Jan – Ago 2026</span>
+</div>
+
+<div class="tabs">
+  <div class="tab active" onclick="sp('visao',this)">Visão Geral</div>
+  <div class="tab" onclick="sp('evolucao',this)">Evolução Anual</div>
+  <div class="tab" onclick="sp('financeiro',this)">Financeiro 2026</div>
+  <div class="tab" onclick="sp('oportunidades',this)">🎯 Oportunidades</div>
+  <div class="tab" onclick="sp('equilibrio',this)">⚖️ Ponto de Equilíbrio</div>
+  <div class="tab" onclick="sp('simulador',this)">💰 Simulador RV</div>
+</div>
+
+<div class="main">
+
+<!-- ══ VISÃO GERAL ══ -->
+<div class="pane active" id="pane-visao">
+  <div class="note-box">
+    <strong style="color:var(--teal)">Vendas</strong> = pedido fechado &nbsp;|&nbsp;
+    <strong style="color:var(--grn)">Faturamento</strong> = serviço entregue e faturado — uma empresa, dois momentos do ciclo comercial
+  </div>
+  <div class="kpi-grid">
+    <div class="kpi" style="--kc:var(--blue)"><div class="kpi-lbl">Vendas Jan–Ago 2026</div><div class="kpi-val" id="kv-tot">—</div><div class="kpi-sub"><span id="kv-vs">—</span> vs mesmo período 2025</div></div>
+    <div class="kpi" style="--kc:var(--teal)"><div class="kpi-lbl">Faturamento Jan–Ago 2026</div><div class="kpi-val" id="kf-tot">—</div><div class="kpi-sub"><span id="kf-vs">—</span> vs mesmo período 2025</div></div>
+    <div class="kpi" style="--kc:var(--yel)"><div class="kpi-lbl">Carteira a Faturar</div><div class="kpi-val" id="k-gap">—</div><div class="kpi-sub" id="k-gap-s">Vendas ainda não faturadas</div></div>
+    <div class="kpi" style="--kc:var(--pur)"><div class="kpi-lbl">Média Mensal Fat.</div><div class="kpi-val" id="kf-med">—</div><div class="kpi-sub"><span id="kf-m25">—</span> em 2025 (anual)</div></div>
+  </div>
+  <div class="card">
+    <div class="ch">
+      <div><div class="ct">Vendas vs Faturamento — Mês a Mês 2026 × 2025</div><div class="cs">Selecione o que exibir</div></div>
+      <div class="fb">
+        <button class="btn av" data-k="v26" onclick="togVG(this)">Vendas 26</button>
+        <button class="btn" data-k="v25" onclick="togVG(this)">Vendas 25</button>
+        <button class="btn" data-k="v24" onclick="togVG(this)">Vendas 24</button>
+        <button class="btn" data-k="v23" onclick="togVG(this)">Vendas 23</button>
+        <button class="btn" data-k="v22" onclick="togVG(this)">Vendas 22</button>
+        <button class="btn" data-k="f26" onclick="togVG(this)">Fat. 26</button>
+        <button class="btn" data-k="f25" onclick="togVG(this)">Fat. 25</button>
+        <button class="btn" data-k="f24" onclick="togVG(this)">Fat. 24</button>
+        <button class="btn" data-k="f23" onclick="togVG(this)">Fat. 23</button>
+        <button class="btn" data-k="f22" onclick="togVG(this)">Fat. 22</button>
+      </div>
+    </div>
+    <div class="cw" style="height:300px"><canvas id="cVG"></canvas></div>
+    <div class="tbl-wrap"><table id="tVG">
+      <thead><tr><th>Mês</th><th class="nr">2022</th><th class="nr">2023</th><th class="nr">2024</th><th class="nr">2025</th><th class="nr">2026</th><th class="nr">Var 26/25</th></tr></thead>
+      <tbody id="tVG-b"></tbody>
+      <tfoot id="tVG-f"></tfoot>
+    </table></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="ch"><div><div class="ct">Evolução Anual — Vendas</div><div class="cs">Total por ano (2022–2026 parcial)</div></div></div>
+      <div class="cw" style="height:200px"><canvas id="cVA"></canvas></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Ano</th><th class="nr">Total</th><th class="nr">Var %</th></tr></thead><tbody id="tVA-b"></tbody></table></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div><div class="ct">Evolução Anual — Faturamento</div><div class="cs">Total por ano (2022–2026 parcial)</div></div></div>
+      <div class="cw" style="height:200px"><canvas id="cFA"></canvas></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Ano</th><th class="nr">Total</th><th class="nr">Var %</th></tr></thead><tbody id="tFA-b"></tbody></table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ EVOLUÇÃO ANUAL ══ -->
+<div class="pane" id="pane-evolucao">
+  <div style="margin-bottom:16px" class="fb">
+    <button class="btn av" data-m="v" onclick="setM(this,'v')">Vendas</button>
+    <button class="btn" data-m="f" onclick="setM(this,'f')">Faturamento</button>
+  </div>
+  <div class="g3" id="ev-kpis"></div>
+  <div class="card">
+    <div class="ch"><div><div class="ct" id="ev-t1">Vendas — Total Anual</div><div class="cs">2022 a 2025 completo + 2026 Jan–Ago</div></div></div>
+    <div class="cw" style="height:260px"><canvas id="cAnual"></canvas></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Ano</th><th class="nr">Jan</th><th class="nr">Fev</th><th class="nr">Mar</th><th class="nr">Abr</th><th class="nr">Mai</th><th class="nr">Jun</th><th class="nr">Jul</th><th class="nr">Ago</th><th class="nr">Set</th><th class="nr">Out</th><th class="nr">Nov</th><th class="nr">Dez</th><th class="nr">Total</th></tr></thead><tbody id="ev-tbl-b"></tbody></table></div>
+  </div>
+  <div class="card">
+    <div class="ch"><div><div class="ct" id="ev-t2">Variação % — 2026 vs 2025 e 2025 vs 2024</div><div class="cs">Mesmo mês do ano anterior</div></div></div>
+    <div class="cw" style="height:240px"><canvas id="cYoY"></canvas></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Mês</th><th class="nr">2026</th><th class="nr">2025</th><th class="nr">Var 26/25</th><th class="nr">2024</th><th class="nr">Var 25/24</th></tr></thead><tbody id="ev-yoy-b"></tbody></table></div>
+  </div>
+</div>
+
+<!-- ══ FINANCEIRO ══ -->
+<div class="pane" id="pane-financeiro">
+  <div class="note-box">Dados por <strong>data de pagamento</strong> — Jan–Ago 2026.</div>
+  <div class="kpi-grid">
+    <div class="kpi" style="--kc:var(--grn)"><div class="kpi-lbl">Receita Jan–Ago 2026</div><div class="kpi-val">R$ 6,55M</div><div class="kpi-sub">Serviços + Produtos</div></div>
+    <div class="kpi" style="--kc:var(--red)"><div class="kpi-lbl">Despesas Jan–Ago 2026</div><div class="kpi-val">R$ 8,95M</div><div class="kpi-sub">Saldo acumulado: -R$ 2,48M</div></div>
+    <div class="kpi" style="--kc:var(--blue)"><div class="kpi-lbl">Receita Serviços</div><div class="kpi-val">R$ 5,96M</div><div class="kpi-sub"><span class="up">91,0%</span> da receita</div></div>
+    <div class="kpi" style="--kc:var(--yel)"><div class="kpi-lbl">Receita Produtos</div><div class="kpi-val">R$ 577K</div><div class="kpi-sub">8,8% da receita</div></div>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="ct">Receita Mensal — Serviços vs Produtos</div></div>
+    <div class="cw" style="height:260px"><canvas id="cRec"></canvas></div>
+    <div class="tbl-wrap"><table><thead><tr><th>Mês</th><th class="nr">Serviços</th><th class="nr">Produtos</th><th class="nr">Total</th></tr></thead><tbody id="tRec"></tbody></table></div>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="ch"><div><div class="ct">Top 10 Despesas</div><div class="cs">Jan–Jul 2026</div></div></div>
+      <div class="cw" style="height:280px"><canvas id="cDesp"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">Receita × Despesa por Mês</div></div>
+      <div class="cw" style="height:280px"><canvas id="cRD"></canvas></div>
+      <div class="tbl-wrap"><table><thead><tr><th>Mês</th><th class="nr">Receita</th><th class="nr">Despesa</th><th class="nr">Saldo</th></tr></thead><tbody id="tRD"></tbody></table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ OPORTUNIDADES ══ -->
+<div class="pane" id="pane-oportunidades">
+  <div class="note-box">Análise das principais categorias de custo Jan–Jul 2026 — oportunidades de redução e otimização identificadas.</div>
+  <div class="kpi-grid">
+    <div class="kpi" style="--kc:var(--grn)"><div class="kpi-lbl">Potencial de Redução Est.</div><div class="kpi-val">R$ 180K</div><div class="kpi-sub">~16% das despesas operacionais/mês</div></div>
+    <div class="kpi" style="--kc:var(--yel)"><div class="kpi-lbl">Despesa com Pessoal</div><div class="kpi-val">57,3%</div><div class="kpi-sub">Das despesas totais (folha + encargos)</div></div>
+    <div class="kpi" style="--kc:var(--red)"><div class="kpi-lbl">Custo Financeiro (Juros)</div><div class="kpi-val">R$ 1,02M</div><div class="kpi-sub">Empréstimos bancários Jan–Jul</div></div>
+    <div class="kpi" style="--kc:var(--pur)"><div class="kpi-lbl">Material de Produção</div><div class="kpi-val">R$ 557K</div><div class="kpi-sub">Adesivos, chapas, tubos e afins</div></div>
+  </div>
+  <div class="opp-card"><div class="opp-icon" style="background:rgba(248,113,113,.15)">🏦</div><div class="opp-body"><div class="opp-title">Renegociação de Empréstimos Bancários</div><div class="opp-desc">R$ 1,02M pagos em Jan–Jul/26 (≈ R$ 146K/mês) em amortização + juros. Consolidar dívidas em linha com menor taxa ou alongar prazo pode liberar fluxo de caixa imediato.</div><div class="opp-impact"><span class="pill pr">Alto Impacto</span> &nbsp; Potencial: R$ 20–40K/mês</div></div></div>
+  <div class="opp-card"><div class="opp-icon" style="background:rgba(251,191,36,.15)">👥</div><div class="opp-body"><div class="opp-title">Revisão de Estrutura de Pessoal vs Terceirização</div><div class="opp-desc">Folha + encargos somam ~R$ 2,5M no período. Comparar custo por colaborador com terceirização de funções de suporte pode reduzir encargos e dar mais flexibilidade operacional.</div><div class="opp-impact"><span class="pill py">Médio Impacto</span> &nbsp; Potencial: R$ 30–60K/mês</div></div></div>
+  <div class="opp-card"><div class="opp-icon" style="background:rgba(79,142,247,.15)">🧾</div><div class="opp-body"><div class="opp-title">Otimização de Regime Tributário</div><div class="opp-desc">IRPJ + CSLL somam R$ 871K no período (R$ 124K/mês). Avaliar com o contador se o Lucro Real não seria mais vantajoso, especialmente com a variação de margem entre meses.</div><div class="opp-impact"><span class="pill pr">Alto Impacto</span> &nbsp; Potencial: 10–20% de redução na carga tributária</div></div></div>
+  <div class="opp-card"><div class="opp-icon" style="background:rgba(34,197,94,.15)">📦</div><div class="opp-body"><div class="opp-title">Gestão de Compras de Material de Produção</div><div class="opp-desc">Adesivo (R$ 147K), ACM (R$ 97K), tubos (R$ 77K). Negociar contratos de volume anual garantido pode reduzir o custo unitário em 8–12%.</div><div class="opp-impact"><span class="pill py">Médio Impacto</span> &nbsp; Potencial: 8–12% de redução no custo de material</div></div></div>
+  <div class="opp-card"><div class="opp-icon" style="background:rgba(34,211,238,.15)">⏱️</div><div class="opp-body"><div class="opp-title">Redução da Defasagem Venda → Faturamento</div><div class="opp-desc">Quanto mais rápido o serviço é entregue e faturado, menor a necessidade de capital de giro financiado com empréstimos. Revisar ciclo de aprovação e produção tem impacto direto no fluxo de caixa.</div><div class="opp-impact"><span class="pill pr">Alto Impacto</span> &nbsp; Impacto indireto: redução da necessidade de crédito bancário</div></div></div>
+  <div class="card" style="margin-top:4px">
+    <div class="ch"><div class="ct">Despesas por Grupo — Jan–Jul 2026</div></div>
+    <div class="cw" style="height:280px"><canvas id="cOppPie"></canvas></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Grupo de Despesa</th><th class="nr">Total (R$)</th><th class="nr">% Total</th><th>Avaliação</th></tr></thead>
+      <tbody id="tOpp"></tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ══ PONTO DE EQUILÍBRIO ══ -->
+<div class="pane" id="pane-equilibrio">
+  <div class="note-box">Calculado com base nos dados reais de <strong>Janeiro a Agosto de 2026</strong> — sem estimativas.</div>
+  <div class="kpi-grid" style="margin-bottom:20px">
+    <div class="kpi" style="--kc:var(--blue)"><div class="kpi-lbl">Ponto de Equilíbrio</div><div class="kpi-val" style="color:var(--blue)">R$ 1.267.000</div><div class="kpi-sub">Faturamento mínimo mensal para cobrir todos os custos</div></div>
+    <div class="kpi" style="--kc:var(--red)"><div class="kpi-lbl">Receita Média Atual</div><div class="kpi-val" style="color:var(--red)">R$ 818.517</div><div class="kpi-sub"><span class="down">R$ 448.483 abaixo</span> do ponto de equilíbrio</div></div>
+    <div class="kpi" style="--kc:var(--yel)"><div class="kpi-lbl">Margem de Contribuição</div><div class="kpi-val" style="color:var(--yel)">67,0%</div><div class="kpi-sub">Do faturamento disponível para cobrir custos fixos</div></div>
+    <div class="kpi" style="--kc:var(--pur)"><div class="kpi-lbl">Déficit Mensal Médio</div><div class="kpi-val" style="color:var(--red)">R$ 300.893</div><div class="kpi-sub">Acumulado Jan–Ago: R$ 2,48M negativo</div></div>
+  </div>
+  <div class="g2" style="margin-bottom:18px">
+    <div class="card"><div class="ch"><div class="ct">Gráfico do Ponto de Equilíbrio</div><div class="cs">Curvas de receita e custo total</div></div><div class="cw" style="height:280px"><canvas id="cPE"></canvas></div></div>
+    <div class="card"><div class="ch"><div class="ct">Receita Real vs PE — Mês a Mês</div><div class="cs">Quantos meses ficaram acima do PE?</div></div><div class="cw" style="height:280px"><canvas id="cPEmes"></canvas></div></div>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="ct">Como foi calculado</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Componente</th><th>Tipo</th><th class="nr">Média Mensal (R$)</th><th class="nr">% Receita</th><th>Base</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Receita Média</strong></td><td></td><td class="nr"><strong>818.517</strong></td><td class="nr">100%</td><td>R$ 6,55M ÷ 8 meses</td></tr>
+        <tr><td colspan="5" style="color:var(--mut);font-size:.72rem;padding-top:12px">CUSTOS VARIÁVEIS</td></tr>
+        <tr><td>Impostos sobre receita</td><td><span class="pill pg">Variável</span></td><td class="nr">80.334</td><td class="nr">9,8%</td><td>Calculado sobre receita real</td></tr>
+        <tr><td>Materiais de produção</td><td><span class="pill pg">Variável</span></td><td class="nr">118.459</td><td class="nr">14,5%</td><td>Grupo 2.1.xx do DRE</td></tr>
+        <tr><td>Comissões e encargos sobre vendas</td><td><span class="pill pg">Variável</span></td><td class="nr">25.737</td><td class="nr">3,1%</td><td>Conta 2.02</td></tr>
+        <tr><td>Terceirizados de produção e fretes</td><td><span class="pill pg">Variável</span></td><td class="nr">45.280</td><td class="nr">5,5%</td><td>Contas 2.07, 2.10, 2.13, 2.05</td></tr>
+        <tr><td><strong>Total Custos Variáveis</strong></td><td></td><td class="nr"><strong>269.810</strong></td><td class="nr"><strong>33,0%</strong></td><td></td></tr>
+        <tr><td><strong>Margem de Contribuição</strong></td><td></td><td class="nr"><strong>548.707</strong></td><td class="nr"><strong>67,0%</strong></td><td>Receita − Custos Variáveis</td></tr>
+        <tr><td colspan="5" style="color:var(--mut);font-size:.72rem;padding-top:12px">CUSTOS FIXOS</td></tr>
+        <tr><td>Folha de pagamento</td><td><span class="pill pr">Fixo</span></td><td class="nr">405.819</td><td class="nr">49,6%</td><td>Contas 4.01.xx</td></tr>
+        <tr><td>Empréstimos bancários</td><td><span class="pill pr">Fixo</span></td><td class="nr">144.801</td><td class="nr">17,7%</td><td>Conta 6.7</td></tr>
+        <tr><td>Estrutura (aluguel, energia, TI etc.)</td><td><span class="pill pr">Fixo</span></td><td class="nr">193.744</td><td class="nr">23,7%</td><td>Contas 4.03.xx + 4.4.xx</td></tr>
+        <tr><td>Veículos</td><td><span class="pill pr">Fixo</span></td><td class="nr">26.708</td><td class="nr">3,3%</td><td>Contas 4.2.x + 5.1 + 5.12</td></tr>
+        <tr><td>Outros fixos</td><td><span class="pill pr">Fixo</span></td><td class="nr">78.427</td><td class="nr">9,6%</td><td>Investimentos, reformas, banco</td></tr>
+        <tr style="background:rgba(248,113,113,.06)"><td><strong>Total Custos Fixos</strong></td><td></td><td class="nr"><strong>849.499</strong></td><td class="nr"><strong>103,8%</strong></td><td>da receita média atual</td></tr>
+        <tr style="background:rgba(79,142,247,.08)"><td colspan="2"><strong>Ponto de Equilíbrio = R$ 849.499 ÷ 67%</strong></td><td class="nr" colspan="3" style="color:var(--blue);font-weight:800;font-size:1.05rem">= R$ 1.267.000/mês</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+</div>
+
+<!-- ══ SIMULADOR RV ══ -->
+<div class="pane" id="pane-simulador">
+  <div class="note-box">Simule a comissão de qualquer vendedor com base na <strong>Política de RV Xis Design</strong>. Ajuste os parâmetros conforme necessário.</div>
+  <div class="g2" style="margin-bottom:18px">
+    <div class="card">
+      <div class="ch"><div class="ct">Parâmetros da Simulação</div></div>
+      <div style="display:grid;gap:14px">
+        <div class="pe-input"><label>Vendedor (opcional)</label><input type="text" id="rv-nome" placeholder="Nome do vendedor" oninput="calcRV()"></div>
+        <div class="pe-input"><label>Meta Mensal (R$)</label><input type="number" id="rv-meta" value="300000" min="0" step="1000" oninput="calcRV()"></div>
+        <div class="pe-input"><label>Vendas Realizadas (R$)</label><input type="number" id="rv-real" value="320000" min="0" step="1000" oninput="calcRV()"></div>
+        <div class="pe-input"><label>Tipo de Vendedor</label><select id="rv-tipo" onchange="calcRV()"><option value="externo">Externo (comissão sobre vendas)</option><option value="interno">Interno / Suporte</option></select></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">Resultado da Simulação</div></div>
+      <div style="display:grid;gap:12px">
+        <div class="pe-result"><div class="pe-val" id="rv-pct">—</div><div class="pe-lbl">% de Atingimento da Meta</div></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="pe-result" style="background:rgba(34,197,94,.08);border-color:rgba(34,197,94,.3)"><div class="pe-val" style="color:var(--grn);font-size:1.4rem" id="rv-faixa">—</div><div class="pe-lbl">Faixa de Comissão</div></div>
+          <div class="pe-result" style="background:rgba(251,191,36,.08);border-color:rgba(251,191,36,.3)"><div class="pe-val" style="color:var(--yel);font-size:1.4rem" id="rv-pct-com">—</div><div class="pe-lbl">% de Comissão</div></div>
+        </div>
+        <div class="pe-result" style="background:rgba(167,139,250,.1);border-color:rgba(167,139,250,.3)"><div class="pe-val" style="color:var(--pur)" id="rv-valor">—</div><div class="pe-lbl">Comissão sobre vendas realizadas</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><div class="ct">Tabela de Faixas — Política RV Xis Design</div><div class="cs">Clique para editar os percentuais</div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Faixa</th><th class="nr">Atingimento</th><th class="nr">Comissão s/ Vendas</th><th>Observação</th></tr></thead>
+      <tbody>
+        <tr id="row-f0"><td><span class="pill pr">Faixa 0</span></td><td class="nr">&lt; 70%</td><td class="nr">0%</td><td>Sem comissão</td></tr>
+        <tr id="row-f1"><td><span class="pill py">Mínimo</span></td><td class="nr">70% – 99,9%</td><td class="nr"><input type="number" id="pct-min" value="2.5" step="0.1" min="0" max="20" style="width:60px;background:var(--sur2);border:1px solid var(--bdr);color:var(--txt);border-radius:6px;padding:4px 8px;font-size:.85rem" oninput="calcRV()">%</td><td>Atingiu mínimo, comissão reduzida</td></tr>
+        <tr id="row-f2"><td><span class="pill pg">Target</span></td><td class="nr">100% – 119,9%</td><td class="nr"><input type="number" id="pct-tgt" value="4.0" step="0.1" min="0" max="20" style="width:60px;background:var(--sur2);border:1px solid var(--bdr);color:var(--txt);border-radius:6px;padding:4px 8px;font-size:.85rem" oninput="calcRV()">%</td><td>Meta atingida</td></tr>
+        <tr id="row-f3"><td><span class="pill pb">Superação</span></td><td class="nr">≥ 120%</td><td class="nr"><input type="number" id="pct-sup" value="6.0" step="0.1" min="0" max="20" style="width:60px;background:var(--sur2);border:1px solid var(--bdr);color:var(--txt);border-radius:6px;padding:4px 8px;font-size:.85rem" oninput="calcRV()">%</td><td>Superou meta em ≥ 20%</td></tr>
+      </tbody>
+    </table></div>
+  </div>
+  <div class="card">
+    <div class="ch">
+      <div><div class="ct">Simulação em Lote — Equipe Completa</div><div class="cs">Digite as vendas de cada vendedor — comissão calcula automaticamente</div></div>
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="rv-mes-label" value="Setembro 2026" placeholder="Mês de referência" style="background:var(--sur2);border:1px solid var(--bdr);color:var(--txt);border-radius:8px;padding:6px 12px;font-size:.8rem;width:140px">
+        <button class="btn" onclick="limparVendas()" style="font-size:.72rem">Limpar</button>
+      </div>
+    </div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Vendedor</th><th class="nr">Meta (R$)</th><th class="nr">Vendas Realizadas (R$)</th><th class="nr">Atingimento</th><th>Faixa</th><th class="nr">% Com.</th><th class="nr">Comissão</th></tr></thead>
+      <tbody id="rv-team-b"></tbody>
+      <tfoot id="rv-team-f"></tfoot>
+    </table></div>
+  </div>
+</div>
+
+</div><!-- /main -->
+
+<script>
+const MO=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+const PAL=['#4f8ef7','#22d3ee','#22c55e','#fbbf24','#a78bfa','#f87171','#fb923c','#34d399','#e879f9','#67e8f9'];
+const VENDAS={
+  2022:[215528.43,133606.47,202402.30,525190.82,353510.80,321331.00,664115.25,584635.63,968479.98,2020789.76,710620.41,691538.83],
+  2023:[522115.91,2353335.34,1047094.91,509614.22,217411.96,996009.92,379339.40,580190.44,2774119.60,1815528.35,807734.89,407929.28],
+  2024:[249999.92,1388938.82,526918.32,337587.16,896175.84,1352891.39,798698.37,967090.36,351468.20,746058.15,933029.80,815682.83],
+  2025:[1188733.82,575262.60,998297.63,895507.16,672216.43,546601.58,878849.38,1564606.26,785195.32,2470625.59,4179154.39,375867.04],
+  2026:[687115.63,1559519.48,294451.68,161843.81,667824.30,418916.27,663389.07,1183577.30,null,null,null,null],
+};
+const FATUR={
+  2022:[936675.16,339873.59,321228.47,498819.30,230573.81,312703.41,246009.24,410895.06,780653.54,1207476.96,296613.03,1152695.72],
+  2023:[166636.08,1772602.76,1952617.03,768734.36,1021440.62,443398.89,298674.32,1120657.73,984956.79,615715.62,334050.75,3956018.62],
+  2024:[376381.82,174120.97,1415893.08,759037.42,761987.60,600496.34,414487.70,530259.20,303344.99,1786023.61,998263.44,433751.51],
+  2025:[558103.13,754743.64,1070674.00,1132659.19,1173006.49,559091.38,519858.89,1313869.38,1387843.47,1897975.19,2591468.76,3198850.73],
+  2026:[240161.58,215306.15,507038.75,1270329.90,339235.26,888819.93,653918.73,606525.07,null,null,null,null],
+};
+const FIN={
+  srv:[1444796.98,905519.34,373550.26,414271.42,212381.23,694847.91,723040.22,1196434.11],
+  prd:[133309.20,47319.23,164679.70,6166.93,129544.66,70759.82,13256.87,11805.12],
+  rec:[1578106.18,952896.16,538313.99,420470.97,341925.89,765607.73,742477.42,1208333.97],
+  desp:[1837754.91,1012776.70,1078347.76,1158741.05,1051578.96,864977.94,833457.81,1117638.47],
+  cat:[
+    {l:'Salários',v:1422054.47,g:'Pessoal'},{l:'Empréstimos Bancários',v:1158409.23,g:'Financeiro'},
+    {l:'IRPJ',v:683622.07,g:'Tributário'},{l:'Pró-labore',v:455788.16,g:'Pessoal'},
+    {l:'Vale Refeição',v:478275.57,g:'Pessoal'},{l:'GPS (Previdência)',v:342428.48,g:'Pessoal'},
+    {l:'CSLL',v:239032.18,g:'Tributário'},{l:'FGTS',v:221275.83,g:'Pessoal'},
+    {l:'Convênio de Saúde',v:151329.56,g:'Pessoal'},{l:'COFINS',v:189998.34,g:'Tributário'},
+    {l:'Adesivo Impressão',v:156058.36,g:'Material'},{l:'Simples Nacional RP',v:140879.65,g:'Tributário'},
+    {l:'Consultoria e Assessoria',v:119110.32,g:'Operacional'},{l:'Terceirizados (Mat. Revenda)',v:114667.25,g:'Material'},
+    {l:'Chapa ACM',v:111505.42,g:'Material'},{l:'Tubo Metal/Alumínio',v:92665.69,g:'Material'},
+    {l:'ISSQN Prestador',v:92662.75,g:'Tributário'},{l:'Vale Transporte',v:91277.50,g:'Pessoal'},
+    {l:'Combustível e Lubrificantes',v:65817.73,g:'Veículos'},{l:'Material de Fixação',v:59647.90,g:'Material'},
+  ],
+};
+function f(n,sh=false){if(n==null||!isFinite(n))return'—';if(sh){if(Math.abs(n)>=1e6)return'R$ '+(n/1e6).toFixed(2).replace('.',',')+'M';if(Math.abs(n)>=1e3)return'R$ '+(n/1e3).toFixed(0)+'K';}return'R$ '+n.toLocaleString('pt-BR',{minimumFractionDigits:0,maximumFractionDigits:0});}
+function p(n){if(n==null||!isFinite(n))return'—';return(n>=0?'+':'')+n.toFixed(1).replace('.',',')+'%';}
+function cl(n){return n>=0?'var(--grn)':'var(--red)';}
+function sa(arr){return arr.filter(v=>v!=null).reduce((a,b)=>a+b,0);}
+function aT(D){return[2022,2023,2024,2025,2026].map(y=>sa(D[y]));}
+let _ch={};
+function mk(id,type,labels,datasets,extra={}){
+  if(_ch[id]){_ch[id].destroy();}
+  const ctx=document.getElementById(id).getContext('2d');
+  const base={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>' '+f(c.raw)}}},scales:{x:{grid:{color:'rgba(46,50,73,.4)'},ticks:{color:'#94a3b8',font:{size:10}}},y:{grid:{color:'rgba(46,50,73,.4)'},ticks:{color:'#94a3b8',font:{size:10},callback:v=>f(v,true)}}}};
+  if(extra.plugins)Object.assign(base.plugins,extra.plugins);
+  if(extra.scales)Object.assign(base.scales,extra.scales);
+  if(extra.indexAxis)base.indexAxis=extra.indexAxis;
+  _ch[id]=new Chart(ctx,{type,data:{labels,datasets},options:base});
+  return _ch[id];
+}
+const VGS={
+  v26:{l:'Vendas 2026',d:VENDAS[2026],c:'#4f8ef7'},v25:{l:'Vendas 2025',d:VENDAS[2025],c:'#22c55e'},
+  v24:{l:'Vendas 2024',d:VENDAS[2024],c:'#fbbf24'},v23:{l:'Vendas 2023',d:VENDAS[2023],c:'#a78bfa'},
+  v22:{l:'Vendas 2022',d:VENDAS[2022],c:'#f87171'},
+  f26:{l:'Fat. 2026',d:FATUR[2026],c:'#06b6d4',dash:[5,3]},f25:{l:'Fat. 2025',d:FATUR[2025],c:'#34d399',dash:[5,3]},
+  f24:{l:'Fat. 2024',d:FATUR[2024],c:'#fcd34d',dash:[5,3]},f23:{l:'Fat. 2023',d:FATUR[2023],c:'#c4b5fd',dash:[5,3]},
+  f22:{l:'Fat. 2022',d:FATUR[2022],c:'#fca5a5',dash:[5,3]},
+};
+const vgA=new Set(['v26']);
+function togVG(btn){const k=btn.dataset.k;btn.classList.toggle('av');vgA.has(k)?vgA.delete(k):vgA.add(k);drawVG();}
+function drawVG(){mk('cVG','line',MO,[...vgA].map(k=>({label:VGS[k].l,data:VGS[k].d,borderColor:VGS[k].c,backgroundColor:VGS[k].c+'22',borderWidth:2.5,pointRadius:4,tension:.35,fill:false,spanGaps:false,borderDash:VGS[k].dash||[]})),{plugins:{legend:{display:true,labels:{color:'#94a3b8',boxWidth:12,font:{size:10}}}}});}
+function initVisao(){
+  const v26=VENDAS[2026].slice(0,8),f26=FATUR[2026].slice(0,8),v25=VENDAS[2025].slice(0,8),f25=FATUR[2025].slice(0,8);
+  const tv26=sa(v26),tf26=sa(f26),tv25=sa(v25),tf25=sa(f25);
+  document.getElementById('kv-tot').textContent=f(tv26,true);
+  document.getElementById('kf-tot').textContent=f(tf26,true);
+  const vv=(tv26-tv25)/tv25*100,vf=(tf26-tf25)/tf25*100;
+  const kvs=document.getElementById('kv-vs');kvs.textContent=p(vv);kvs.className=vv>=0?'up':'down';
+  const kfs=document.getElementById('kf-vs');kfs.textContent=p(vf);kfs.className=vf>=0?'up':'down';
+  const gap=tv26-tf26;
+  document.getElementById('k-gap').textContent=f(Math.abs(gap),true);
+  document.getElementById('k-gap-s').textContent=gap>0?'Vendas > Fat. (carteira a faturar)':'Faturamento > Vendas';
+  const nMes=f26.filter(v=>v!=null).length;
+  document.getElementById('kf-med').textContent=f(tf26/nMes,true);
+  document.getElementById('kf-m25').textContent=f(sa(FATUR[2025])/12,true);
+  drawVG();
+  const tb=document.getElementById('tVG-b');
+  for(let i=0;i<12;i++){
+    const v2=VENDAS[2022][i],v3=VENDAS[2023][i],v4=VENDAS[2024][i],v5=VENDAS[2025][i],v6=VENDAS[2026][i];
+    const vr=v5&&v6!=null?(v6-v5)/v5*100:null,fut=v6==null;
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${MO[i]}</td><td class="nr">${f(v2)}</td><td class="nr">${f(v3)}</td><td class="nr">${f(v4)}</td><td class="nr">${f(v5)}</td><td class="nr" style="color:${fut?'var(--mut)':''}">${fut?'—':f(v6)}</td><td class="nr" style="color:${vr!=null?cl(vr):'var(--mut)'}">${fut?'—':p(vr)}</td>`;
+    tb.appendChild(tr);
+  }
+  const totals=[2022,2023,2024,2025,2026].map(yr=>sa(VENDAS[yr]));
+  const avgs=[totals[0]/12,totals[1]/12,totals[2]/12,totals[3]/12,sa(VENDAS[2026].slice(0,8))/8];
+  const tfoot=document.getElementById('tVG-f');
+  const trTot=document.createElement('tr');trTot.style.cssText='border-top:2px solid var(--bdr);font-weight:700';
+  trTot.innerHTML=`<td>Total</td>${totals.map(v=>`<td class="nr">${f(v)}</td>`).join('')}<td></td>`;tfoot.appendChild(trTot);
+  const trAvg=document.createElement('tr');trAvg.style.cssText='color:var(--teal);font-weight:600';
+  trAvg.innerHTML=`<td>Média/mês</td>${avgs.map(v=>`<td class="nr">${f(v)}</td>`).join('')}<td class="nr" style="color:var(--mut);font-size:.72rem">2026=Jan–Ago</td>`;tfoot.appendChild(trAvg);
+  const yrs=[2022,2023,2024,2025,2026],tvA=aT(VENDAS),tfA=aT(FATUR);
+  mk('cVA','bar',yrs.map(String),[{data:tvA,backgroundColor:PAL.map(c=>c+'99'),borderColor:PAL,borderWidth:1.5,borderRadius:5}]);
+  mk('cFA','bar',yrs.map(String),[{data:tfA,backgroundColor:['#22d3ee44','#22d3ee66','#22d3ee88','#22d3eeaa','#22d3eecc'],borderColor:'#22d3ee',borderWidth:1.5,borderRadius:5}]);
+  const tbVA=document.getElementById('tVA-b'),tbFA=document.getElementById('tFA-b');
+  yrs.forEach((yr,i)=>{
+    const tv=tvA[i],tf=tfA[i],pvv=i>0?((tvA[i]-tvA[i-1])/tvA[i-1]*100):null,pvf=i>0?((tfA[i]-tfA[i-1])/tfA[i-1]*100):null;
+    const rv=document.createElement('tr');rv.innerHTML=`<td>${yr}${yr===2026?' (Jan–Ago)':''}</td><td class="nr">${f(tv)}</td><td class="nr" style="color:${pvv!=null?cl(pvv):'var(--mut)'}">${pvv!=null?p(pvv):'base'}</td>`;tbVA.appendChild(rv);
+    const rf=document.createElement('tr');rf.innerHTML=`<td>${yr}${yr===2026?' (Jan–Ago)':''}</td><td class="nr">${f(tf)}</td><td class="nr" style="color:${pvf!=null?cl(pvf):'var(--mut)'}">${pvf!=null?p(pvf):'base'}</td>`;tbFA.appendChild(rf);
+  });
+}
+let eM='v';
+function setM(btn,m){document.querySelectorAll('[data-m]').forEach(b=>b.className='btn');btn.classList.add('btn','av');eM=m;drawEvol();}
+function drawEvol(){
+  const D=eM==='v'?VENDAS:FATUR,L=eM==='v'?'Vendas':'Faturamento';
+  document.getElementById('ev-t1').textContent=L+' — Total Anual';
+  document.getElementById('ev-t2').textContent='Variação % '+L+' — 2026 vs 2025 e 2025 vs 2024';
+  const yrs=[2022,2023,2024,2025,2026],tots=aT(D);
+  const kc=document.getElementById('ev-kpis');kc.innerHTML='';
+  const kC=['#a78bfa','#22d3ee','#4f8ef7','#22c55e','#fbbf24'];
+  yrs.forEach((yr,i)=>{const d=document.createElement('div');d.className='kpi';d.style.setProperty('--kc',kC[i]);d.innerHTML=`<div class="kpi-lbl">${L} ${yr}${yr===2026?' Jan–Ago':''}</div><div class="kpi-val">${f(tots[i],true)}</div>`;kc.appendChild(d);});
+  const cagr=(Math.pow(tots[3]/tots[0],1/3)-1)*100;
+  const cd=document.createElement('div');cd.className='kpi';cd.style.setProperty('--kc','#f87171');cd.innerHTML=`<div class="kpi-lbl">CAGR 2022–2025</div><div class="kpi-val" style="color:${cl(cagr)}">${p(cagr)}</div>`;kc.appendChild(cd);
+  mk('cAnual','bar',yrs.map(String),[{data:tots,backgroundColor:PAL.slice(0,5).map(c=>c+'bb'),borderColor:PAL.slice(0,5),borderWidth:2,borderRadius:6}]);
+  const tb=document.getElementById('ev-tbl-b');tb.innerHTML='';
+  yrs.forEach(yr=>{const tr=document.createElement('tr');const row=D[yr];const tot=sa(row);const cells=MO.map((_,i)=>row[i]!=null?`<td class="nr">${f(row[i])}</td>`:`<td class="nr" style="color:var(--mut)">—</td>`).join('');tr.innerHTML=`<td><strong>${yr}</strong></td>${cells}<td class="nr"><strong>${f(tot)}</strong></td>`;tb.appendChild(tr);});
+  const m8=MO.slice(0,8),d26=D[2026].slice(0,8),d25=D[2025].slice(0,8),d24=D[2024].slice(0,8);
+  const y2625=m8.map((_,i)=>d25[i]?((d26[i]-d25[i])/d25[i]*100):null);
+  const y2524=m8.map((_,i)=>d24[i]?((d25[i]-d24[i])/d24[i]*100):null);
+  mk('cYoY','bar',m8,[{label:'2026 vs 2025',data:y2625,backgroundColor:y2625.map(v=>v>=0?'#22c55e88':'#f8717188'),borderColor:y2625.map(v=>v>=0?'#22c55e':'#f87171'),borderWidth:1.5,borderRadius:4},{label:'2025 vs 2024',data:y2524,backgroundColor:y2524.map(v=>v>=0?'#4f8ef755':'#fbbf2455'),borderColor:y2524.map(v=>v>=0?'#4f8ef7':'#fbbf24'),borderWidth:1.5,borderRadius:4}],{plugins:{legend:{display:true,labels:{color:'#94a3b8',boxWidth:12,font:{size:10}}}},scales:{y:{ticks:{callback:v=>v.toFixed(0)+'%'}}}});
+  const yt=document.getElementById('ev-yoy-b');yt.innerHTML='';
+  for(let i=0;i<8;i++){const v2=d25[i],v3=d26[i],v1=d24[i];const r1=v2&&v3?(v3-v2)/v2*100:null,r2=v1&&v2?(v2-v1)/v1*100:null;const tr=document.createElement('tr');tr.innerHTML=`<td>${MO[i]}</td><td class="nr">${f(v3)}</td><td class="nr">${f(v2)}</td><td class="nr" style="color:${r1!=null?cl(r1):'var(--mut)'}">${p(r1)}</td><td class="nr">${f(v1)}</td><td class="nr" style="color:${r2!=null?cl(r2):'var(--mut)'}">${p(r2)}</td>`;yt.appendChild(tr);}
+}
+function initFin(){
+  const mes=MO.slice(0,8);
+  mk('cRec','bar',mes,[{label:'Serviços',data:FIN.srv,backgroundColor:'#22c55e88',borderColor:'#22c55e',borderWidth:1.5,borderRadius:0},{label:'Produtos',data:FIN.prd,backgroundColor:'#4f8ef788',borderColor:'#4f8ef7',borderWidth:1.5,borderRadius:4}],{plugins:{legend:{display:true,labels:{color:'#94a3b8',boxWidth:12,font:{size:10}}}},scales:{x:{stacked:true},y:{stacked:true,ticks:{callback:v=>f(v,true)}}}});
+  const trec=document.getElementById('tRec');mes.forEach((m,i)=>{const tot=FIN.srv[i]+FIN.prd[i];const tr=document.createElement('tr');tr.innerHTML=`<td>${m}</td><td class="nr">${f(FIN.srv[i])}</td><td class="nr">${f(FIN.prd[i])}</td><td class="nr"><strong>${f(tot)}</strong></td>`;trec.appendChild(tr);});
+  const dc=[...FIN.cat].sort((a,b)=>b.v-a.v).slice(0,10);
+  mk('cDesp','bar',dc.map(d=>d.l),[{data:dc.map(d=>d.v),backgroundColor:PAL.map(c=>c+'99'),borderColor:PAL,borderWidth:1.5,borderRadius:4}],{indexAxis:'y',scales:{x:{ticks:{callback:v=>f(v,true)}},y:{ticks:{font:{size:9}}}}});
+  mk('cRD','bar',mes,[{label:'Receita',data:FIN.rec,backgroundColor:'#22c55e55',borderColor:'#22c55e',borderWidth:2,borderRadius:4},{label:'Despesa',data:FIN.desp,backgroundColor:'#f8717155',borderColor:'#f87171',borderWidth:2,borderRadius:4}],{plugins:{legend:{display:true,labels:{color:'#94a3b8',boxWidth:12,font:{size:10}}}},scales:{y:{ticks:{callback:v=>f(v,true)}}}});
+  const trd=document.getElementById('tRD');mes.forEach((m,i)=>{const s=FIN.rec[i]-FIN.desp[i];const tr=document.createElement('tr');tr.innerHTML=`<td>${m}</td><td class="nr">${f(FIN.rec[i])}</td><td class="nr">${f(FIN.desp[i])}</td><td class="nr" style="color:${cl(s)}">${f(s)}</td>`;trd.appendChild(tr);});
+}
+function initOpp(){
+  const grupos={};FIN.cat.forEach(d=>{if(!grupos[d.g])grupos[d.g]=0;grupos[d.g]+=d.v;});
+  const gArr=Object.entries(grupos).sort((a,b)=>b[1]-a[1]);const totG=gArr.reduce((a,g)=>a+g[1],0);
+  mk('cOppPie','doughnut',gArr.map(g=>g[0]),[{data:gArr.map(g=>g[1]),backgroundColor:PAL.map(c=>c+'cc'),borderColor:'#1a1d27',borderWidth:2}],{plugins:{legend:{display:true,position:'right',labels:{color:'#94a3b8',boxWidth:12,font:{size:10}}},tooltip:{callbacks:{label:c=>' '+f(c.raw)+' ('+((c.raw/totG)*100).toFixed(1)+'%)'}}},scales:{x:{display:false},y:{display:false}}});
+  const tb=document.getElementById('tOpp');
+  gArr.forEach((g)=>{const pct=(g[1]/totG*100);let av='',pc='pb';if(g[0]==='Financeiro'){av='Renegociar';pc='pr';}else if(g[0]==='Tributário'){av='Revisar regime';pc='py';}else if(g[0]==='Material'){av='Contratos de volume';pc='pg';}else if(g[0]==='Veículos'){av='Política de frota';pc='pg';}else{av='Monitorar';}const tr=document.createElement('tr');tr.innerHTML=`<td>${g[0]}</td><td><span class="pill ${pc}">${av}</span></td><td class="nr">${f(g[1])}</td><td class="nr">${pct.toFixed(1)}%</td>`;tb.appendChild(tr);});
+}
+let peChart=null,peChart2=null;
+function calcPE(){
+  const cf=849499,mc=0.67,pe=1267000,recMes=FIN.rec;
+  const steps=20,maxR=pe*1.9,xs=Array.from({length:steps+1},(_,i)=>Math.round(i/steps*maxR));
+  if(peChart)peChart.destroy();
+  const ctx=document.getElementById('cPE').getContext('2d');
+  peChart=new Chart(ctx,{type:'line',data:{labels:xs.map(x=>f(x,true)),datasets:[{label:'Receita',data:xs,borderColor:'#22c55e',borderWidth:2.5,pointRadius:0,fill:false,tension:0},{label:'Custo Total',data:xs.map(x=>cf+x*(1-mc)),borderColor:'#f87171',borderWidth:2.5,pointRadius:0,fill:false,tension:0},{label:'Custo Fixo',data:xs.map(()=>cf),borderColor:'#fbbf24',borderWidth:1.5,pointRadius:0,fill:false,tension:0,borderDash:[6,4]}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#94a3b8',boxWidth:12,font:{size:10}}},tooltip:{callbacks:{label:c=>' '+f(c.raw)}}},scales:{x:{grid:{color:'rgba(46,50,73,.4)'},ticks:{color:'#94a3b8',font:{size:9},maxTicksLimit:8}},y:{grid:{color:'rgba(46,50,73,.4)'},ticks:{color:'#94a3b8',font:{size:10},callback:v=>f(v,true)}}}}});
+  if(peChart2)peChart2.destroy();
+  const ctx2=document.getElementById('cPEmes').getContext('2d');
+  peChart2=new Chart(ctx2,{type:'bar',data:{labels:MO.slice(0,8),datasets:[{label:'Receita Real',data:recMes,backgroundColor:recMes.map(v=>v>=pe?'#22c55e88':'#f8717188'),borderColor:recMes.map(v=>v>=pe?'#22c55e':'#f87171'),borderWidth:2,borderRadius:4},{label:'PE (R$ 1.267.000)',data:Array(8).fill(pe),borderColor:'#4f8ef7',borderWidth:2,borderDash:[6,4],type:'line',pointRadius:0,fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:true,labels:{color:'#94a3b8',boxWidth:12,font:{size:10}}},tooltip:{callbacks:{label:c=>' '+f(c.raw)}}},scales:{x:{grid:{color:'rgba(46,50,73,.4)'},ticks:{color:'#94a3b8'}},y:{grid:{color:'rgba(46,50,73,.4)'},ticks:{color:'#94a3b8',callback:v=>f(v,true)}}}}});
+}
+const RV_TEAM=[
+  {n:'Wanderley Ribeiro Esgrinholi',meta:600000},{n:'Rosangela Dias Gomes',meta:300000},
+  {n:'Erika Zacharias Toledo',meta:180000},{n:'Gabriel de Oliveira Baster',meta:220000},
+  {n:'Grazielli L. F. Gama',meta:240000},{n:'Benjamin S. de Castro',meta:240000},
+  {n:'Andrea Petrovich Gonçalves',meta:240000},{n:'Priscila R. E. Gouvea',meta:100000},
+];
+function getFaixa(pct,pm,pt,ps){if(pct<70)return{l:'Faixa 0',c:'pr',r:0};if(pct<100)return{l:'Mínimo',c:'py',r:pm};if(pct<120)return{l:'Target',c:'pg',r:pt};return{l:'Superação',c:'pb',r:ps};}
+let _rvInited=false;
+function initRVTeam(){
+  if(_rvInited)return;_rvInited=true;
+  const tb=document.getElementById('rv-team-b');tb.innerHTML='';
+  RV_TEAM.forEach((v,i)=>{
+    const tr=document.createElement('tr');tr.id='rv-row-'+i;
+    tr.innerHTML=`<td>${v.n}</td><td class="nr"><input type="number" id="rv-m-${i}" value="${v.meta}" min="0" step="1000" style="width:110px;background:var(--sur2);border:1px solid var(--bdr);color:var(--txt);border-radius:6px;padding:4px 8px;font-size:.82rem;text-align:right" oninput="atualizaLinha(${i})"></td><td class="nr"><input type="number" id="rv-v-${i}" value="0" min="0" step="1000" style="width:120px;background:var(--sur2);border:1px solid var(--blue2);color:var(--txt);border-radius:6px;padding:4px 8px;font-size:.82rem;text-align:right" oninput="atualizaLinha(${i})"></td><td class="nr" id="rv-a-${i}" style="font-weight:600">—</td><td id="rv-f-${i}">—</td><td class="nr" id="rv-p-${i}">—</td><td class="nr" id="rv-c-${i}" style="font-weight:700;color:var(--pur)">—</td>`;
+    tb.appendChild(tr);atualizaLinha(i);
+  });
+  const tf=document.getElementById('rv-team-f');
+  tf.innerHTML=`<tr style="border-top:2px solid var(--bdr)"><td><strong>Total</strong></td><td class="nr" id="rv-tot-meta"></td><td class="nr" id="rv-tot-vend"></td><td></td><td></td><td></td><td class="nr" id="rv-tot-com" style="font-weight:700;color:var(--pur)"></td></tr>`;
+  recalcTotals();
+}
+function atualizaLinha(i){
+  const meta=parseFloat(document.getElementById('rv-m-'+i).value)||0,real=parseFloat(document.getElementById('rv-v-'+i).value)||0;
+  const pm=parseFloat(document.getElementById('pct-min').value)||0,pt=parseFloat(document.getElementById('pct-tgt').value)||0,ps=parseFloat(document.getElementById('pct-sup').value)||0;
+  const pct=meta>0?real/meta*100:0,fx=getFaixa(pct,pm,pt,ps),com=real*fx.r/100;
+  const aEl=document.getElementById('rv-a-'+i);if(aEl){aEl.textContent=pct.toFixed(1).replace('.',',')+('%');aEl.style.color=pct>=100?'var(--grn)':pct>=70?'var(--yel)':'var(--red)';}
+  const fEl=document.getElementById('rv-f-'+i);if(fEl)fEl.innerHTML=`<span class="pill ${fx.c}">${fx.l}</span>`;
+  const pEl=document.getElementById('rv-p-'+i);if(pEl)pEl.textContent=fx.r.toFixed(1)+'%';
+  const cEl=document.getElementById('rv-c-'+i);if(cEl)cEl.textContent=f(com);
+  recalcTotals();
+}
+function recalcTotals(){
+  let totMeta=0,totVend=0,totCom=0;
+  const pm=parseFloat(document.getElementById('pct-min').value)||0,pt=parseFloat(document.getElementById('pct-tgt').value)||0,ps=parseFloat(document.getElementById('pct-sup').value)||0;
+  RV_TEAM.forEach((_,i)=>{const mEl=document.getElementById('rv-m-'+i),vEl=document.getElementById('rv-v-'+i);if(!mEl||!vEl)return;const meta=parseFloat(mEl.value)||0,real=parseFloat(vEl.value)||0,pct=meta>0?real/meta*100:0,fx=getFaixa(pct,pm,pt,ps);totMeta+=meta;totVend+=real;totCom+=real*fx.r/100;});
+  const tmEl=document.getElementById('rv-tot-meta');if(tmEl)tmEl.textContent=f(totMeta);
+  const tvEl=document.getElementById('rv-tot-vend');if(tvEl)tvEl.textContent=f(totVend);
+  const tcEl=document.getElementById('rv-tot-com');if(tcEl)tcEl.textContent=f(totCom);
+}
+function limparVendas(){RV_TEAM.forEach((_,i)=>{const el=document.getElementById('rv-v-'+i);if(el){el.value=0;atualizaLinha(i);}});}
+function calcRV(){
+  const meta=parseFloat(document.getElementById('rv-meta').value)||0,real=parseFloat(document.getElementById('rv-real').value)||0;
+  const pm=parseFloat(document.getElementById('pct-min').value)||0,pt=parseFloat(document.getElementById('pct-tgt').value)||0,ps=parseFloat(document.getElementById('pct-sup').value)||0;
+  const pct=meta>0?real/meta*100:0,fx=getFaixa(pct,pm,pt,ps),com=real*fx.r/100;
+  document.getElementById('rv-pct').textContent=pct.toFixed(1).replace('.',',')+'%';
+  document.getElementById('rv-pct').style.color=pct>=100?'var(--grn)':pct>=70?'var(--yel)':'var(--red)';
+  document.getElementById('rv-faixa').textContent=fx.l;
+  document.getElementById('rv-pct-com').textContent=fx.r.toFixed(1).replace('.',',')+'%';
+  document.getElementById('rv-valor').textContent=f(com);
+  const activeIdx=pct<70?0:pct<100?1:pct<120?2:3;
+  ['f0','f1','f2','f3'].forEach((id,i)=>document.getElementById('row-'+id).style.background=i===activeIdx?'rgba(79,142,247,.1)':'');
+  if(_rvInited)RV_TEAM.forEach((_,i)=>atualizaLinha(i));
+}
+const done={};
+function sp(id,el){
+  document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('pane-'+id).classList.add('active');el.classList.add('active');
+  if(id==='visao'&&!done.v){initVisao();done.v=1;}
+  if(id==='evolucao'&&!done.e){drawEvol();done.e=1;}
+  if(id==='financeiro'&&!done.f){initFin();done.f=1;}
+  if(id==='oportunidades'&&!done.o){initOpp();done.o=1;}
+  if(id==='equilibrio'&&!done.q){calcPE();done.q=1;}
+  if(id==='simulador'&&!done.s){initRVTeam();calcRV();done.s=1;}
+}
+initVisao();done.v=1;
+</script>
+</body>
+</html>
