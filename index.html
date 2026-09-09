@@ -318,17 +318,17 @@
 
 <!-- ══ ORÇAMENTO 2027 ══ -->
 <div class="pane" id="pane-orcamento">
-  <div class="note-box">Projeção baseada na sazonalidade histórica 2022–2025 e na estrutura de custos de 2026. Custo fixo mensal mantido em <strong>R$ 849.499</strong> — margem de contribuição de <strong>67%</strong>.</div>
+  <div class="note-box">Projeção baseada na sazonalidade histórica 2022–2025. Custos 2026 corrigidos com <strong>+5% de inflação</strong> para 2027 — custo fixo projetado: <strong>R$ 891.974/mês</strong>. Margem de contribuição mantida em <strong>67%</strong>.</div>
   <div class="kpi-grid">
     <div class="kpi" style="--kc:var(--pur)"><div class="kpi-lbl">Meta de Lucro 2027</div><div class="kpi-val" style="color:var(--pur)">R$ 1,5M</div><div class="kpi-sub">Definida pela empresa</div></div>
-    <div class="kpi" style="--kc:var(--blue)"><div class="kpi-lbl">Faturamento Necessário</div><div class="kpi-val" style="color:var(--blue)">R$ 17,5M</div><div class="kpi-sub">Para atingir a meta de lucro</div></div>
-    <div class="kpi" style="--kc:var(--yel)"><div class="kpi-lbl">Para Equilibrar (PE)</div><div class="kpi-val" style="color:var(--yel)">R$ 15,2M</div><div class="kpi-sub">+117% vs 2026 projetado (~R$ 7M)</div></div>
+    <div class="kpi" style="--kc:var(--blue)"><div class="kpi-lbl">Para Lucro de R$ 1,5M</div><div class="kpi-val" style="color:var(--blue)">R$ 18,2M</div><div class="kpi-sub">+160% vs 2026 projetado (~R$ 7M)</div></div>
+    <div class="kpi" style="--kc:var(--yel)"><div class="kpi-lbl">Para Equilibrar (Déficit Zero)</div><div class="kpi-val" style="color:var(--yel)">R$ 16M</div><div class="kpi-sub">+128% vs 2026 projetado (~R$ 7M)</div></div>
     <div class="kpi" style="--kc:var(--red)"><div class="kpi-lbl">PE Mensal</div><div class="kpi-val" style="color:var(--red)">R$ 1.267K</div><div class="kpi-sub">Faturamento mínimo para não ter déficit</div></div>
   </div>
   <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center">
     <span style="font-size:.8rem;color:var(--mut);font-weight:600">Cenário:</span>
-    <button class="btn av" data-sc="pe" onclick="setOrc(this,'pe')">⚖️ Ponto de Equilíbrio — R$ 15,2M</button>
-    <button class="btn" data-sc="meta" onclick="setOrc(this,'meta')">🎯 Meta Lucro — R$ 17,5M</button>
+    <button class="btn av" data-sc="pe" onclick="setOrc(this,'pe')">⚖️ Ponto de Equilíbrio — R$ 16M</button>
+    <button class="btn" data-sc="meta" onclick="setOrc(this,'meta')">🎯 Meta Lucro — R$ 18,2M</button>
   </div>
   <div class="g2">
     <div class="card">
@@ -351,6 +351,14 @@
   <div class="card" style="background:rgba(251,191,36,.05);border-color:rgba(251,191,36,.25)">
     <div class="ch"><div class="ct" style="color:var(--yel)">⚠️ Análise do Gap</div></div>
     <div id="orc-gap-txt" style="font-size:.85rem;line-height:1.8;color:var(--mut)"></div>
+  </div>
+  <div class="card">
+    <div class="ch"><div><div class="ct">Projeção de Custos 2027 por Categoria</div><div class="cs">Base: Jan–Jul 2026 anualizado + 5% de inflação</div></div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Grupo</th><th>Categoria</th><th class="nr">2026 Médio/mês</th><th class="nr">2027 Proj./mês (+5%)</th><th class="nr">2027 Anual</th><th>Tipo</th></tr></thead>
+      <tbody id="orc-cat-tbl"></tbody>
+      <tfoot id="orc-cat-foot"></tfoot>
+    </table></div>
   </div>
 </div>
 
@@ -561,12 +569,52 @@ function calcRV(){
 }
 const ORC_W=[0.045,0.068,0.106,0.070,0.071,0.043,0.033,0.075,0.077,0.123,0.094,0.195];
 const ORC_SC={
-  pe:{l:'Ponto de Equilíbrio',fat:15206000,c:'#fbbf24'},
-  meta:{l:'Meta Lucro R$ 1,5M',fat:17454000,c:'#22c55e'},
+  pe:{l:'Ponto de Equilíbrio',fat:15975000,c:'#fbbf24'},
+  meta:{l:'Meta Lucro R$ 1,5M',fat:18213000,c:'#22c55e'},
 };
-const CF_MES=849499,CV_PCT=0.33;
+const CF_MES=891974,CV_PCT=0.33;
 let _orcCen='pe';
 function setOrc(btn,sc){document.querySelectorAll('[data-sc]').forEach(b=>b.classList.remove('av'));btn.classList.add('av');_orcCen=sc;drawOrc();}
+function buildCatTable(){
+  const MESES=7;// Jan-Jul 2026
+  const cats=[
+    {g:'Pessoal',l:'Salários',v:1422054.47,t:'Fixo'},
+    {g:'Pessoal',l:'Pró-labore',v:455788.16,t:'Fixo'},
+    {g:'Pessoal',l:'Vale Refeição',v:478275.57,t:'Fixo'},
+    {g:'Pessoal',l:'GPS (Previdência)',v:342428.48,t:'Fixo'},
+    {g:'Pessoal',l:'FGTS',v:221275.83,t:'Fixo'},
+    {g:'Pessoal',l:'Convênio de Saúde',v:151329.56,t:'Fixo'},
+    {g:'Pessoal',l:'Vale Transporte',v:91277.50,t:'Fixo'},
+    {g:'Financeiro',l:'Empréstimos Bancários',v:1158409.23,t:'Fixo'},
+    {g:'Tributário',l:'IRPJ',v:683622.07,t:'Variável'},
+    {g:'Tributário',l:'CSLL',v:239032.18,t:'Variável'},
+    {g:'Tributário',l:'COFINS',v:189998.34,t:'Variável'},
+    {g:'Tributário',l:'Simples Nacional RP',v:140879.65,t:'Variável'},
+    {g:'Tributário',l:'ISSQN Prestador',v:92662.75,t:'Variável'},
+    {g:'Material',l:'Adesivo Impressão',v:156058.36,t:'Variável'},
+    {g:'Material',l:'Terceirizados (Mat. Revenda)',v:114667.25,t:'Variável'},
+    {g:'Material',l:'Chapa ACM',v:111505.42,t:'Variável'},
+    {g:'Material',l:'Tubo Metal/Alumínio',v:92665.69,t:'Variável'},
+    {g:'Material',l:'Material de Fixação',v:59647.90,t:'Variável'},
+    {g:'Operacional',l:'Consultoria e Assessoria',v:119110.32,t:'Fixo'},
+    {g:'Veículos',l:'Combustível e Lubrificantes',v:65817.73,t:'Variável'},
+  ];
+  const tb=document.getElementById('orc-cat-tbl');if(!tb)return;tb.innerHTML='';
+  let totM26=0,totM27=0,totA27=0;
+  let grpCur='';
+  cats.forEach(c=>{
+    const m26=c.v/MESES,m27=m26*1.05,a27=m27*12;
+    totM26+=m26;totM27+=m27;totA27+=a27;
+    const tr=document.createElement('tr');
+    if(c.g!==grpCur){tr.style.borderTop='1px solid var(--bdr)';grpCur=c.g;}
+    tr.innerHTML=`<td style="color:var(--mut);font-size:.75rem">${c.g}</td><td>${c.l}</td><td class="nr">${f(Math.round(m26))}</td><td class="nr" style="color:var(--yel)">${f(Math.round(m27))}</td><td class="nr" style="font-weight:600">${f(Math.round(a27))}</td><td><span class="pill ${c.t==='Fixo'?'pr':'py'}">${c.t}</span></td>`;
+    tb.appendChild(tr);
+  });
+  const tf=document.getElementById('orc-cat-foot');if(!tf)return;tf.innerHTML='';
+  const tfr=document.createElement('tr');tfr.style.cssText='font-weight:700;border-top:2px solid var(--bdr)';
+  tfr.innerHTML=`<td colspan="2">Total (Top 20 categorias)</td><td class="nr">${f(Math.round(totM26))}</td><td class="nr" style="color:var(--yel)">${f(Math.round(totM27))}</td><td class="nr">${f(Math.round(totA27))}</td><td style="color:var(--mut);font-size:.72rem">+5% inflação</td>`;
+  tf.appendChild(tfr);
+}
 function drawOrc(){
   const cen=ORC_SC[_orcCen];
   const fat=ORC_W.map(w=>Math.round(cen.fat*w));
@@ -602,7 +650,7 @@ function sp(id,el){
   if(id==='oportunidades'&&!done.o){initOpp();done.o=1;}
   if(id==='equilibrio'&&!done.q){calcPE();done.q=1;}
   if(id==='simulador'&&!done.s){initRVTeam();calcRV();done.s=1;}
-  if(id==='orcamento'&&!done.or){drawOrc();done.or=1;}
+  if(id==='orcamento'&&!done.or){drawOrc();buildCatTable();done.or=1;}
 }
 initVisao();done.v=1;
 </script>
