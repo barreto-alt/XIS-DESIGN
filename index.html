@@ -99,6 +99,7 @@
   <div class="tab" onclick="sp('oportunidades',this)">🎯 Oportunidades</div>
   <div class="tab" onclick="sp('equilibrio',this)">⚖️ Ponto de Equilíbrio</div>
   <div class="tab" onclick="sp('simulador',this)">💰 Simulador RV</div>
+  <div class="tab" onclick="sp('orcamento',this)">📊 Orçamento 2027</div>
 </div>
 
 <div class="main">
@@ -314,6 +315,45 @@
   </div>
 </div>
 
+
+<!-- ══ ORÇAMENTO 2027 ══ -->
+<div class="pane" id="pane-orcamento">
+  <div class="note-box">Projeção baseada na sazonalidade histórica 2022–2025 e na estrutura de custos de 2026. Custo fixo mensal mantido em <strong>R$ 849.499</strong> — margem de contribuição de <strong>67%</strong>.</div>
+  <div class="kpi-grid">
+    <div class="kpi" style="--kc:var(--pur)"><div class="kpi-lbl">Meta de Lucro 2027</div><div class="kpi-val" style="color:var(--pur)">R$ 1,5M</div><div class="kpi-sub">Definida pela empresa</div></div>
+    <div class="kpi" style="--kc:var(--blue)"><div class="kpi-lbl">Faturamento Necessário</div><div class="kpi-val" style="color:var(--blue)">R$ 17,5M</div><div class="kpi-sub">Para atingir a meta de lucro</div></div>
+    <div class="kpi" style="--kc:var(--yel)"><div class="kpi-lbl">Para Equilibrar (PE)</div><div class="kpi-val" style="color:var(--yel)">R$ 15,2M</div><div class="kpi-sub">+117% vs 2026 projetado (~R$ 7M)</div></div>
+    <div class="kpi" style="--kc:var(--red)"><div class="kpi-lbl">PE Mensal</div><div class="kpi-val" style="color:var(--red)">R$ 1.267K</div><div class="kpi-sub">Faturamento mínimo para não ter déficit</div></div>
+  </div>
+  <div style="display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center">
+    <span style="font-size:.8rem;color:var(--mut);font-weight:600">Cenário:</span>
+    <button class="btn av" data-sc="pe" onclick="setOrc(this,'pe')">⚖️ Ponto de Equilíbrio — R$ 15,2M</button>
+    <button class="btn" data-sc="meta" onclick="setOrc(this,'meta')">🎯 Meta Lucro — R$ 17,5M</button>
+  </div>
+  <div class="g2">
+    <div class="card">
+      <div class="ch"><div><div class="ct" id="orc-titulo">Faturamento Projetado — Cenário Conservador</div><div class="cs">Distribuição mensal por sazonalidade histórica</div></div></div>
+      <div class="cw" style="height:260px"><canvas id="cOrc"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="ch"><div class="ct">Resultado Acumulado 2027</div><div class="cs">Lucro/Déficit acumulado mês a mês</div></div>
+      <div class="cw" style="height:260px"><canvas id="cOrcAcum"></canvas></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="ch"><div><div class="ct">Orçamento Mensal 2027</div><div class="cs" id="orc-resumo">—</div></div></div>
+    <div class="tbl-wrap"><table>
+      <thead><tr><th>Mês</th><th class="nr">Fat. Projetado</th><th class="nr">Custo Variável</th><th class="nr">Custo Fixo</th><th class="nr">Custo Total</th><th class="nr">Resultado Mês</th><th class="nr">Acumulado</th></tr></thead>
+      <tbody id="orc-tbl"></tbody>
+      <tfoot id="orc-tfoot"></tfoot>
+    </table></div>
+  </div>
+  <div class="card" style="background:rgba(251,191,36,.05);border-color:rgba(251,191,36,.25)">
+    <div class="ch"><div class="ct" style="color:var(--yel)">⚠️ Análise do Gap</div></div>
+    <div id="orc-gap-txt" style="font-size:.85rem;line-height:1.8;color:var(--mut)"></div>
+  </div>
+</div>
+
 </div><!-- /main -->
 
 <script>
@@ -519,6 +559,38 @@ function calcRV(){
   ['f0','f1','f2','f3'].forEach((id,i)=>document.getElementById('row-'+id).style.background=i===activeIdx?'rgba(79,142,247,.1)':'');
   if(_rvInited)RV_TEAM.forEach((_,i)=>atualizaLinha(i));
 }
+const ORC_W=[0.045,0.068,0.106,0.070,0.071,0.043,0.033,0.075,0.077,0.123,0.094,0.195];
+const ORC_SC={
+  pe:{l:'Ponto de Equilíbrio',fat:15206000,c:'#fbbf24'},
+  meta:{l:'Meta Lucro R$ 1,5M',fat:17454000,c:'#22c55e'},
+};
+const CF_MES=849499,CV_PCT=0.33;
+let _orcCen='pe';
+function setOrc(btn,sc){document.querySelectorAll('[data-sc]').forEach(b=>b.classList.remove('av'));btn.classList.add('av');_orcCen=sc;drawOrc();}
+function drawOrc(){
+  const cen=ORC_SC[_orcCen];
+  const fat=ORC_W.map(w=>Math.round(cen.fat*w));
+  const cv=fat.map(v=>Math.round(v*CV_PCT));
+  const ct=fat.map((v,i)=>cv[i]+CF_MES);
+  const res=fat.map((v,i)=>v-ct[i]);
+  let acum=0;const acums=res.map(v=>{acum+=v;return acum;});
+  const lucroAnual=Math.round(cen.fat*0.67-CF_MES*12);
+  document.getElementById('orc-titulo').textContent='Faturamento Projetado — Cenário '+cen.l;
+  document.getElementById('orc-resumo').textContent='Anual: '+f(cen.fat)+' → Resultado: '+(lucroAnual>=0?'+':'')+f(lucroAnual);
+  mk('cOrc','bar',MO,[
+    {label:'Faturamento',data:fat,backgroundColor:cen.c+'88',borderColor:cen.c,borderWidth:2,borderRadius:4},
+    {label:'PE (R$ 1.267.000)',data:Array(12).fill(1267000),type:'line',borderColor:'#f87171',borderWidth:2,borderDash:[5,3],pointRadius:0,fill:false}
+  ],{plugins:{legend:{display:true,labels:{color:'#94a3b8',boxWidth:12,font:{size:10}}}},scales:{y:{ticks:{callback:v=>f(v,true)}}}});
+  mk('cOrcAcum','line',MO,[{label:'Acumulado',data:acums,borderColor:acums[11]>=0?'#22c55e':'#f87171',backgroundColor:(acums[11]>=0?'#22c55e':'#f87171')+'22',borderWidth:2.5,pointRadius:4,fill:true,tension:.3}],{scales:{y:{ticks:{callback:v=>f(v,true)}}}});
+  const tb=document.getElementById('orc-tbl');tb.innerHTML='';
+  MO.forEach((m,i)=>{const above=fat[i]>=1267000;const tr=document.createElement('tr');tr.innerHTML=`<td>${m}</td><td class="nr" style="color:${above?'var(--grn)':'var(--red)'}">${f(fat[i])}</td><td class="nr">${f(cv[i])}</td><td class="nr">${f(CF_MES)}</td><td class="nr">${f(ct[i])}</td><td class="nr" style="color:${cl(res[i])};font-weight:600">${f(res[i])}</td><td class="nr" style="color:${cl(acums[i])};font-weight:700">${f(acums[i])}</td>`;tb.appendChild(tr);});
+  const tf=document.getElementById('orc-tfoot');tf.innerHTML='';
+  const tfr=document.createElement('tr');tfr.style.cssText='font-weight:700;border-top:2px solid var(--bdr)';
+  tfr.innerHTML=`<td>Total</td><td class="nr">${f(cen.fat)}</td><td class="nr">${f(sa(cv))}</td><td class="nr">${f(CF_MES*12)}</td><td class="nr">${f(sa(ct))}</td><td class="nr" style="color:${cl(lucroAnual)}">${f(lucroAnual)}</td><td></td>`;tf.appendChild(tfr);
+  const mesOK=fat.filter(v=>v>=1267000).length;
+  const gap=17500000-cen.fat;const gapPct=Math.round(gap/cen.fat*100);
+  document.getElementById('orc-gap-txt').innerHTML=`<p><strong style="color:var(--txt)">Cenário ${cen.l} — R$ ${(cen.fat/1e6).toFixed(0)}M/ano:</strong></p><p style="margin-top:8px"><strong style="color:${mesOK>=6?'var(--grn)':'var(--yel)'}">${mesOK} de 12 meses</strong> ficam acima do ponto de equilíbrio. Resultado anual: <strong style="color:${cl(lucroAnual)}">${f(lucroAnual)}</strong>.</p><p style="margin-top:8px">${gap>0?`Para atingir a <strong style="color:var(--pur)">meta de R$ 1,5M de lucro</strong>, faltam <strong style="color:var(--red)">R$ ${f(gap)}</strong> de faturamento anual (+${gapPct}% sobre este cenário). A alavanca principal é crescimento de receita — os custos fixos estão mantidos.`:`<strong style="color:var(--grn)">Meta de lucro atingida ✓</strong> — este cenário supera a meta de R$ 1,5M.`}</p><p style="margin-top:8px">Meses em <span style="color:var(--grn)">verde</span> = acima do PE &nbsp;|&nbsp; em <span style="color:var(--red)">vermelho</span> = abaixo do PE.</p>`;
+}
 const done={};
 function sp(id,el){
   document.querySelectorAll('.pane').forEach(p=>p.classList.remove('active'));
@@ -530,6 +602,7 @@ function sp(id,el){
   if(id==='oportunidades'&&!done.o){initOpp();done.o=1;}
   if(id==='equilibrio'&&!done.q){calcPE();done.q=1;}
   if(id==='simulador'&&!done.s){initRVTeam();calcRV();done.s=1;}
+  if(id==='orcamento'&&!done.or){drawOrc();done.or=1;}
 }
 initVisao();done.v=1;
 </script>
