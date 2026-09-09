@@ -650,7 +650,7 @@ function sp(id,el){
   if(id==='oportunidades'&&!done.o){initOpp();done.o=1;}
   if(id==='equilibrio'&&!done.q){calcPE();done.q=1;}
   if(id==='simulador'&&!done.s){initRVTeam();calcRV();done.s=1;}
-  if(id==='orcamento'&&!done.or){drawOrc();buildCatTable();done.or=1;}
+  if(id==='orcamento'&&!done.or){done.or=1;setTimeout(()=>{drawOrc();buildCatTable();},50);}
 }
 initVisao();done.v=1;
 </script>
