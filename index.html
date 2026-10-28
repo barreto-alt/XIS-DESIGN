@@ -111,8 +111,8 @@
     <strong style="color:var(--grn)">Faturamento</strong> = serviço entregue e faturado — uma empresa, dois momentos do ciclo comercial
   </div>
   <div class="kpi-grid">
-    <div class="kpi" style="--kc:var(--blue)"><div class="kpi-lbl">Vendas Jan–Ago 2026</div><div class="kpi-val" id="kv-tot">—</div><div class="kpi-sub"><span id="kv-vs">—</span> vs mesmo período 2025</div></div>
-    <div class="kpi" style="--kc:var(--teal)"><div class="kpi-lbl">Faturamento Jan–Ago 2026</div><div class="kpi-val" id="kf-tot">—</div><div class="kpi-sub"><span id="kf-vs">—</span> vs mesmo período 2025</div></div>
+    <div class="kpi" style="--kc:var(--blue)"><div class="kpi-lbl" id="kv-lbl">Vendas 2026</div><div class="kpi-val" id="kv-tot">—</div><div class="kpi-sub"><span id="kv-vs">—</span> vs mesmo período 2025</div></div>
+    <div class="kpi" style="--kc:var(--teal)"><div class="kpi-lbl" id="kf-lbl">Faturamento 2026</div><div class="kpi-val" id="kf-tot">—</div><div class="kpi-sub"><span id="kf-vs">—</span> vs mesmo período 2025</div></div>
     <div class="kpi" style="--kc:var(--yel)"><div class="kpi-lbl">Carteira a Faturar</div><div class="kpi-val" id="k-gap">—</div><div class="kpi-sub" id="k-gap-s">Vendas ainda não faturadas</div></div>
     <div class="kpi" style="--kc:var(--pur)"><div class="kpi-lbl">Média Mensal Fat.</div><div class="kpi-val" id="kf-med">—</div><div class="kpi-sub"><span id="kf-m25">—</span> em 2025 (anual)</div></div>
   </div>
@@ -451,8 +451,13 @@ const vgA=new Set(['v26']);
 function togVG(btn){const k=btn.dataset.k;btn.classList.toggle('av');vgA.has(k)?vgA.delete(k):vgA.add(k);drawVG();}
 function drawVG(){mk('cVG','line',MO,[...vgA].map(k=>({label:VGS[k].l,data:VGS[k].d,borderColor:VGS[k].c,backgroundColor:VGS[k].c+'22',borderWidth:2.5,pointRadius:4,tension:.35,fill:false,spanGaps:false,borderDash:VGS[k].dash||[]})),{plugins:{legend:{display:true,labels:{color:'#94a3b8',boxWidth:12,font:{size:10}}}}});}
 function initVisao(){
-  const v26=VENDAS[2026].slice(0,8),f26=FATUR[2026].slice(0,8),v25=VENDAS[2025].slice(0,8),f25=FATUR[2025].slice(0,8);
+  const MN=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const nv=VENDAS[2026].filter(v=>v!=null).length,nf=FATUR[2026].filter(v=>v!=null).length;
+  const v26=VENDAS[2026].slice(0,nv),f26=FATUR[2026].slice(0,nf);
+  const v25=VENDAS[2025].slice(0,nv),f25=FATUR[2025].slice(0,nf);
   const tv26=sa(v26),tf26=sa(f26),tv25=sa(v25),tf25=sa(f25);
+  document.getElementById('kv-lbl').textContent=`Vendas Jan–${MN[nv-1]} 2026`;
+  document.getElementById('kf-lbl').textContent=`Faturamento Jan–${MN[nf-1]} 2026`;
   document.getElementById('kv-tot').textContent=f(tv26,true);
   document.getElementById('kf-tot').textContent=f(tf26,true);
   const vv=(tv26-tv25)/tv25*100,vf=(tf26-tf25)/tf25*100;
@@ -461,8 +466,7 @@ function initVisao(){
   const gap=tv26-tf26;
   document.getElementById('k-gap').textContent=f(Math.abs(gap),true);
   document.getElementById('k-gap-s').textContent=gap>0?'Vendas > Fat. (carteira a faturar)':'Faturamento > Vendas';
-  const nMes=f26.filter(v=>v!=null).length;
-  document.getElementById('kf-med').textContent=f(tf26/nMes,true);
+  document.getElementById('kf-med').textContent=f(tf26/nf,true);
   document.getElementById('kf-m25').textContent=f(sa(FATUR[2025])/12,true);
   drawVG();
   const tb=document.getElementById('tVG-b');
